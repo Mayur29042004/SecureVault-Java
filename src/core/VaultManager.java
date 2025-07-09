@@ -3,8 +3,15 @@ package core;
 import utils.Encryptor;
 import java.util.*;
 import java.io.*;
+import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
+
+
 
 public class VaultManager {
+    
+private static Map<String, String> passwordMap = new HashMap<>();
     private static final String FILE = "vault.txt";
     private static HashMap<String, String> vault = new HashMap<>();
     private static Stack<String> deletedStack = new Stack<>();
@@ -56,4 +63,17 @@ public class VaultManager {
     public static Set<String> listSites() {
         return vault.keySet();
     }
+
+    public static List<VaultEntry> getAllPasswords() {
+        return passwordMap.entrySet().stream()
+            .map(e -> {
+                try {
+                    return new VaultEntry(e.getKey(), Encryptor.decrypt(e.getValue()));
+                } catch (Exception ex) {
+                    throw new RuntimeException("Decryption failed for key: " + e.getKey(), ex);
+                }
+            })
+            .collect(Collectors.toList());
+    }
+
 }

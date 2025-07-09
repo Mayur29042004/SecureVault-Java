@@ -5,6 +5,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
+import javafx.stage.Stage;
 
 public class LoginScreen {
     private VBox layout;
@@ -31,7 +32,15 @@ public class LoginScreen {
     String user = username.getText();
     String pass = password.getText();
     boolean success = LoginManager.login(user, pass);
-    System.out.println(success ? "Login successful!" : "Invalid credentials.");
+    if (success) {
+    DashboardScreen dashboard = new DashboardScreen();
+    dashboard.showDashboard((Stage) layout.getScene().getWindow());
+    }
+    else {
+        System.out.println("Invalid credentials.");
+    }
+
+    
 });
 
 registerBtn.setOnAction(e -> {
