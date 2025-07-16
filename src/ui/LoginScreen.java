@@ -2,6 +2,7 @@ package ui;
 
 import auth.LoginManager;
 import javafx.geometry.Pos;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
@@ -28,19 +29,21 @@ public class LoginScreen {
         layout.getChildren().addAll(title, username, password, loginBtn, registerBtn);
 
         // Action placeholders
-        loginBtn.setOnAction(e -> {
-    String user = username.getText();
-    String pass = password.getText();
-    boolean success = LoginManager.login(user, pass);
-    if (success) {
-    DashboardScreen dashboard = new DashboardScreen();
-    dashboard.showDashboard((Stage) layout.getScene().getWindow());
+loginBtn.setOnAction(e -> {
+    try {
+        String user = username.getText();
+        String pass = password.getText();
+        boolean success = LoginManager.login(user, pass);
+        if (success) {
+            DashboardScreen dashboard = new DashboardScreen();
+            dashboard.show((Stage) layout.getScene().getWindow());
+        }
+        else {
+            System.out.println("Invalid credentials.");
+        }
+    } catch (Exception ex) {
+        ex.printStackTrace();
     }
-    else {
-        System.out.println("Invalid credentials.");
-    }
-
-    
 });
 
 registerBtn.setOnAction(e -> {
@@ -55,4 +58,10 @@ registerBtn.setOnAction(e -> {
     public VBox getLayout() {
         return layout;
     }
+
+    public void show(Stage stage) {
+    stage.setScene(new Scene(getLayout()));
+    stage.setTitle("Login");
+    stage.show();
+}
 }

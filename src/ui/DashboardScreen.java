@@ -2,124 +2,144 @@ package ui;
 
 import core.VaultEntry;
 import core.VaultManager;
+import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
-import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 
-
+import java.net.URL;
+import java.util.List;
 
 public class DashboardScreen {
 
-    public void showDashboard(Stage stage) {
-        // Layouts
-        VBox root = new VBox(15);
-        root.setPadding(new Insets(20));
-        root.setAlignment(Pos.TOP_CENTER);
+    public static void show(Stage stage) {
+        VBox layout = new VBox(20);
+        layout.setPadding(new Insets(20));
+        layout.setAlignment(Pos.TOP_CENTER);
 
-        // Title
         Label title = new Label("🔐 SecureVault Dashboard");
-        title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
+        title.setStyle("-fx-font-size: 22px; -fx-text-fill: #3f51b5;");
 
         // Input fields
-        TextField siteField = new TextField();
-        siteField.setPromptText("Enter website (e.g., gmail)");
+        GridPane form = new GridPane();
+        form.setHgap(10);
+        form.setVgap(10);
+        form.setAlignment(Pos.CENTER);
 
-        PasswordField passField = new PasswordField();
+        Label siteLabel = new Label("🌐 Website:");
+        TextField siteField = new TextField();
+        siteField.setPromptText("e.g. Gmail");
+
+        Label passLabel = new Label("🔑 Password:");
+        TextField passField = new TextField();
         passField.setPromptText("Enter password");
+
+        form.add(siteLabel, 0, 0);
+        form.add(siteField, 1, 0);
+        form.add(passLabel, 0, 1);
+        form.add(passField, 1, 1);
+
+        // TableView setup
+        TableView<VaultEntry> tableView = new TableView<>();
+
+        TableColumn<VaultEntry, String> siteCol = new TableColumn<>("🌐 Site");
+        siteCol.setCellValueFactory(data -> data.getValue().siteProperty());
+
+        TableColumn<VaultEntry, String> passCol = new TableColumn<>("🔑 Password");
+        passCol.setCellValueFactory(data -> data.getValue().passwordProperty());
+
+        tableView.getColumns().addAll(siteCol, passCol);
+        tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        tableView.setPlaceholder(new Label("No saved passwords yet."));
+        tableView.setPrefHeight(200);
 
         // Buttons
         Button addBtn = new Button("➕ Add");
-        Button deleteBtn = new Button("❌ Delete");
-        Button undoBtn = new Button("↩ Undo Delete");
         Button searchBtn = new Button("🔍 Search");
+        Button deleteBtn = new Button("❌ Delete");
+        Button undoBtn = new Button("↩ Undo");
+        Button logoutBtn = new Button("🚪 Logout");
 
-        // Buttons container
-        HBox buttons = new HBox(10, addBtn, deleteBtn, undoBtn, searchBtn);
-        buttons.setAlignment(Pos.CENTER);
+        HBox buttonBox = new HBox(10, addBtn, searchBtn, deleteBtn, undoBtn, logoutBtn);
+        buttonBox.setAlignment(Pos.CENTER);
 
-        // Output label
-        Label output = new Label();
+        Label output = new Label("");
+        output.setStyle("-fx-text-fill: green;");
 
-// TableView setup
-ObservableList<VaultEntry> passwordList = FXCollections.observableArrayList(VaultManager.getAllPasswords());
-TableView<VaultEntry> table = new TableView<>();
-TableColumn<VaultEntry, String> siteCol = new TableColumn<>("Website");
-siteCol.setCellValueFactory(new PropertyValueFactory<>("site"));
-TableColumn<VaultEntry, String> passCol = new TableColumn<>("Password");
-passCol.setCellValueFactory(new PropertyValueFactory<>("password"));
-table.getColumns().addAll(siteCol, passCol);
-table.setItems(passwordList); // ← Attach the list
-table.setPrefHeight(150);
+        layout.getChildren().addAll(title, form, buttonBox, tableView, output);
 
-// Add password action
-addBtn.setOnAction(e -> {
-    String site = siteField.getText();
-    String pass = passField.getText();
-    System.out.println("UI Add Clicked: " + site + " - " + pass);
-    if (!site.isEmpty() && !pass.isEmpty()) {
-        VaultManager.addPassword(site, pass);
-        output.setText("✅ Password saved!");
+        Scene scene = new Scene(layout, 600, 500);
 
-        // ⬇ Refresh the table with updated data
-        passwordList.setAll(VaultManager.getAllPasswords());
+        // ✅ Safe stylesheet load (optional)
+        try {
+            URL cssUrl = DashboardScreen.class.getResource("/styles.css");
+            if (cssUrl != null) {
+                scene.getStylesheets().add(cssUrl.toExternalForm());
+            } else {
+                System.out.println("⚠ styles.css not found.");
+            }
+        } catch (Exception e) {
+            System.out.println("⚠ Error loading styles.css: " + e.getMessage());
+        }
 
-        // Optional: clear fields
-        siteField.clear();
-        passField.clear();
-    } else {
-        output.setText("⚠ Fields cannot be empty.");
-    }
-});
-        // Delete password
-        deleteBtn.setOnAction(e -> {
-            String site = siteField.getText();
-            VaultManager.deletePassword(site);
-            output.setText("❌ Password deleted (if existed).");
+        stage.setScene(scene);
+        stage.setTitle("SecureVault");
+        stage.show();
+
+        // Button actions
+        addBtn.setOnAction(e -> {
+            String site = siteField.getText().trim();
+            String password = passField.getText().trim();
+            if (!site.isEmpty() && !password.isEmpty()) {
+                VaultManager.addPassword(site, password);
+                output.setText("✅ Added password for: " + site);
+                refreshTable(tableView);
+                siteField.clear();
+                passField.clear();
+            } else {
+                output.setText("⚠ Enter both site and password.");
+            }
         });
 
-        // Undo delete
+        searchBtn.setOnAction(e -> {
+            String site = siteField.getText().trim();
+            if (!site.isEmpty()) {
+                String result = VaultManager.getPassword(site);
+                output.setText(result != null ? "🔍 Password: " + result : "❌ No entry found.");
+            } else {
+                output.setText("⚠ Enter a site to search.");
+            }
+        });
+
+        deleteBtn.setOnAction(e -> {
+            String site = siteField.getText().trim();
+            if (!site.isEmpty()) {
+                VaultManager.deletePassword(site);
+                output.setText("🗑 Deleted: " + site);
+                refreshTable(tableView);
+            } else {
+                output.setText("⚠ Enter a site to delete.");
+            }
+        });
+
         undoBtn.setOnAction(e -> {
             VaultManager.undoDelete();
-            output.setText("↩ Last deleted password restored!");
-            passwordList.setAll(VaultManager.getAllPasswords());
+            output.setText("↩ Undo complete.");
+            refreshTable(tableView);
         });
 
-        // Add table and buttons to layout
-        root.getChildren().addAll(title, siteField, passField, table, buttons, output);
-
-        // Logout button
-        Button logoutBtn = new Button("🔙 Logout");
         logoutBtn.setOnAction(e -> {
-            LoginScreen login = new LoginScreen();
-            Scene loginScene = new Scene(login.getLayout(), 400, 300);
-            stage.setScene(loginScene);
+            new LoginScreen().show(stage);
         });
-        buttons.getChildren().add(logoutBtn);
 
-        //search button
-        searchBtn.setOnAction(e -> {
-    String site = siteField.getText().toLowerCase(); // normalize
-    String result = VaultManager.getPassword(site);
-
-    if (!site.isEmpty()) {
-        output.setText(result.equals("Not Found")
-            ? "🔍 No entry found."
-            : "🔐 Password: " + result);
-    } else {
-        output.setText("⚠ Please enter a website to search.");
+        refreshTable(tableView);
     }
-});
 
-        // Set Scene
-        Scene scene = new Scene(root, 400, 300);
-        stage.setScene(scene);
-        stage.setTitle("Dashboard - SecureVault");
-        stage.show();
+    private static void refreshTable(TableView<VaultEntry> table) {
+        List<VaultEntry> entries = VaultManager.getAllPasswords();
+        table.setItems(FXCollections.observableArrayList(entries));
     }
 }
