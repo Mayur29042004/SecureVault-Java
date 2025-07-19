@@ -1,0 +1,75 @@
+.root {
+    -fx-background-color: #121212;
+    -fx-font-family: 'Segoe UI', sans-serif;
+    -fx-text-fill: #ffffff;
+}
+
+.label {
+    -fx-text-fill: #f0f0f0;
+    -fx-font-size: 14px;
+}
+
+.title-label {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: linear-gradient(to right, #00c6ff, #0072ff);
+}
+
+.text-field {
+    -fx-background-color: #1E1E1E;
+    -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #888888;
+    -fx-border-color: #333;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 8px;
+}
+
+.button {
+    -fx-background-color: #2C2C2C;
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 13px;
+    -fx-padding: 6px 12px;
+    -fx-background-radius: 4;
+    -fx-border-color: #444;
+}
+
+.button:hover {
+    -fx-background-color: #3c3c3c;
+    -fx-cursor: hand;
+}
+
+.table-view {
+    -fx-background-radius: 10;
+    -fx-background-color: #2c2f33;
+    -fx-control-inner-background: #2c2f33;
+    -fx-text-fill: white;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #2A2A2A;
+}
+
+.table-view .column-header, .table-view .filler {
+    -fx-size: 35px;
+    -fx-border-color: transparent transparent #3A3A3A transparent;
+    -fx-background-color: #2A2A2A;
+    -fx-text-fill: #f0f0f0;
+    -fx-font-weight: bold;
+}
+
+.table-row-cell {
+    -fx-background-radius: 10;
+    -fx-padding: 5;
+}
+
+.table-row-cell:filled:selected {
+    -fx-background-color: #333333;
+    -fx-text-fill: #4FC3F7;
+}
+
+.label#output {
+    -fx-text-fill: #81C784;
+    -fx-font-size: 13px;
+    -fx-padding: 4px;
+}
