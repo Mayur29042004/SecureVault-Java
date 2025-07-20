@@ -1,28 +1,27 @@
 package core;
 
 import utils.Encryptor;
-
 import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class VaultManager {
-
-    private static final String FILE_NAME = "vault.txt";
-
-    // ✅ This must be initialized to avoid NullPointerException
     private static Map<String, String> passwordMap = new HashMap<>();
-
-    // Used only if you're tracking undo-delete and VaultEntry model
-    private static Map<String, String> vault = new HashMap<>();
     private static Deque<String> deletedStack = new ArrayDeque<>();
+    private static String currentUser;
 
-    // ✅ Load vault.txt on startup
-    static {
-        loadFromFile();
+    // ✅ Set current user (used to define vault file)
+    public static void setCurrentUser(String username) {
+        currentUser = username;
+        loadFromFile();  // ✅ Load their specific file
     }
 
-    // 🔐 Add password to map and save to file
+    // ✅ Get current user vault file
+    private static File getVaultFile() {
+        return new File("vault_" + currentUser + ".txt");
+    }
+
+    // 🔐 Add password
     public static void addPassword(String site, String password) {
         try {
             passwordMap.put(site.toLowerCase(), Encryptor.encrypt(password));
@@ -34,7 +33,7 @@ public class VaultManager {
         }
     }
 
-    // 🔎 Retrieve decrypted password
+    // 🔎 Get password
     public static String getPassword(String site) {
         try {
             if (passwordMap.containsKey(site.toLowerCase())) {
@@ -57,7 +56,7 @@ public class VaultManager {
         }
     }
 
-    // ↩ Undo last delete
+    // ↩ Undo delete
     public static void undoDelete() {
         if (!deletedStack.isEmpty()) {
             String[] split = deletedStack.pop().split(":");
@@ -66,9 +65,9 @@ public class VaultManager {
         }
     }
 
-    // 📂 Save password map to file
+    // 📂 Save all passwords to current user's file
     public static void saveToFile() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(getVaultFile()))) {
             for (Map.Entry<String, String> entry : passwordMap.entrySet()) {
                 writer.write(entry.getKey() + ":" + entry.getValue());
                 writer.newLine();
@@ -78,9 +77,15 @@ public class VaultManager {
         }
     }
 
-    // 📥 Load from vault.txt into passwordMap
+    // 📥 Load passwords from current user's file
     public static void loadFromFile() {
-        try (BufferedReader reader = new BufferedReader(new FileReader(FILE_NAME))) {
+        passwordMap.clear();
+        File file = getVaultFile();
+        if (!file.exists()) {
+            System.out.println("⚠ " + file.getName() + " not found. Starting fresh.");
+            return;
+        }
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(":");
@@ -90,11 +95,11 @@ public class VaultManager {
             }
             System.out.println("✅ Vault loaded: " + passwordMap.keySet());
         } catch (IOException e) {
-            System.out.println("⚠ vault.txt not found. Starting fresh.");
+            e.printStackTrace();
         }
     }
 
-    // 📋 For displaying in TableView
+    // 📋 For TableView
     public static List<VaultEntry> getAllPasswords() {
         return passwordMap.entrySet().stream()
                 .map(e -> {
@@ -107,7 +112,7 @@ public class VaultManager {
                 .collect(Collectors.toList());
     }
 
-    // Optional: list only site names
+    // 🔎 Optional - site list
     public static Set<String> listSites() {
         return passwordMap.keySet();
     }

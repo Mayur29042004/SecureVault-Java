@@ -1,6 +1,7 @@
 package ui;
 
 import auth.LoginManager;
+import core.VaultManager;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -42,6 +43,8 @@ public class LoginScreen {
                 String pass = password.getText();
                 boolean success = LoginManager.login(user, pass);
                 if (success) {
+                    VaultManager.setCurrentUser(user);       // ✅ Set current user
+                    VaultManager.loadFromFile();             // ✅ Load user-specific data
                     DashboardScreen dashboard = new DashboardScreen();
                     dashboard.show((Stage) layout.getScene().getWindow());
                 } else {
@@ -57,6 +60,8 @@ public class LoginScreen {
             String pass = password.getText();
             boolean success = LoginManager.register(user, pass);
             showAlert("Registration", success ? "✅ User registered!" : "⚠ User already exists.");
+            VaultManager.setCurrentUser(user);         // ✅ Set user even on registration
+            VaultManager.loadFromFile();               // ✅ Load (or prepare) their vault
         });
     }
 

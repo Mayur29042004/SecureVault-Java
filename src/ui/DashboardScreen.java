@@ -76,6 +76,7 @@ public class DashboardScreen {
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         tableView.setPlaceholder(new Label("No saved passwords yet."));
         tableView.setPrefHeight(200);
+        tableView.setStyle("-fx-background-color: #1e1e1e; -fx-text-fill: white;");
 
         TableColumn<VaultEntry, String> siteCol = new TableColumn<>("🌐 Site");
         siteCol.setCellValueFactory(data -> data.getValue().siteProperty());
